@@ -1,9 +1,11 @@
 <script>
+  export let name;
+
   import Nested from "./Nested.svelte";
   import Info from "./Info.svelte";
   import Thing from "./Thing.svelte";
-
-  export let name;
+  import Outer from "./Outer.svelte";
+  import CustomButton from "./CustomButton.svelte";
 
   // Counter
   let count = 0;
@@ -91,6 +93,30 @@
     m.x = event.clientX;
     m.y = event.clientY;
   };
+
+  const handleDOMClick = () => {
+    alert("clicked");
+  };
+
+  // Component Events
+  const handleMessage = (event) => {
+    alert(event.detail.text);
+  };
+
+  // Forward DOM Events
+  const handleCustomButtonClick = () => {
+    alert("custom button clicked");
+  };
+
+  // Text Input Binding
+  let inputName = "Jason Wang";
+
+  // Numeric Inputs, bind:value auto converts to appropriate type aka int.
+  let a = 1;
+  let b = 2;
+
+  // Checkbox Inputs, bound to checked boolean
+  let yes = false;
 </script>
 
 <style>
@@ -209,11 +235,63 @@
 
     <div id="DOMEvents">The mouse position is {m.x} x {m.y}</div>
 
-    <div on:mousemove={(e) => (m = { x: e.clientX, y: e.clientY })}>
+    <div
+      id="DOMEvents2"
+      on:mousemove={(e) => (m = { x: e.clientX, y: e.clientY })}>
       The mouse position is
       {m.x}
       x
       {m.y}, calculated inline!
+    </div>
+
+    <div id="DOMEventModifier">
+      <button on:click|preventDefault|stopPropagation={handleDOMClick}>Click me</button>
+    </div>
+
+    <div id="eventDispatchForward">
+      <Outer on:message={handleMessage} />
+    </div>
+
+    <div id="DOMEventDispatchForward">
+      <CustomButton on:click={handleCustomButtonClick} />
+    </div>
+
+    <div id="inputBindings">
+      <input type="text" bind:value={inputName} />
+      <h1>Hello {inputName}!</h1>
+    </div>
+
+    <div id="numericInputs">
+      <label>
+        <input type="number" bind:value={a} min="0" max="10" />
+        <input type="range" bind:value={a} min="0" max="10" />
+      </label>
+
+      <label>
+        <input type="number" bind:value={b} min="0" max="10" />
+        <input type="range" bind:value={b} min="0" max="10" />
+      </label>
+
+      <p>{a} + {b} = {a + b}</p>
+    </div>
+
+    <div id="checkboxInputs">
+      <label>
+        <input type="checkbox" bind:checked={yes} />
+        Yes! Send me regular email spam
+      </label>
+
+      {#if yes}
+        <p>
+          Thank you. We will bombard your inbox and sell your personal details.
+        </p>
+      {:else}
+        <p>
+          You must opt in to continue. If you're not paying, you're the product.
+        </p>
+      {/if}
+
+      <button disabled={!yes}> Subscribe </button>
     </div>
   </div>
 </main>
