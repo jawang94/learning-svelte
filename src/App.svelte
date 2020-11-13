@@ -1,6 +1,7 @@
 <script>
   export let name;
 
+  import marked from "marked";
   import Nested from "./Nested.svelte";
   import Info from "./Info.svelte";
   import Thing from "./Thing.svelte";
@@ -117,6 +118,62 @@
 
   // Checkbox Inputs, bound to checked boolean
   let yes = false;
+
+  // Group Inputs
+  let scoops = 1;
+  let flavours = [];
+
+  let menu = ["Cookies and cream", "Mint choc chip", "Raspberry ripple"];
+
+  const join = (flavours) => {
+    if (flavours.length === 1) return flavours[0];
+    return `${flavours.slice(0, -1).join(", ")} and ${
+      flavours[flavours.length - 1]
+    }`;
+  };
+
+  // Text Area
+  let value = `Some words are *italic*, some are **bold**`;
+
+  // Select Bindings
+  let questions = [
+    { id: 1, text: `Where did you go to school?` },
+    { id: 2, text: `What is your mother's name?` },
+    {
+      id: 3,
+      text: `What is another personal fact that an attacker could easily find with Google?`,
+    },
+  ];
+
+  let selected;
+
+  let answer = "";
+
+  const handleSubmit = () => {
+    alert(
+      `answered question ${selected.id} (${selected.text}) with "${answer}"`
+    );
+  };
+
+  // Contenteditable Divs
+  let html = "<h3>Write some text!</h3>";
+
+  // Each Block Bindings
+  let todos = [
+    { done: false, text: "finish Svelte tutorial" },
+    { done: false, text: "build an app" },
+    { done: false, text: "world domination" },
+  ];
+
+  const add = () => {
+    todos = todos.concat({ done: false, text: "" });
+  };
+
+  const clear = () => {
+    todos = todos.filter((t) => !t.done);
+  };
+
+  $: remaining = todos.filter((t) => !t.done).length;
 </script>
 
 <style>
@@ -134,6 +191,17 @@
     font-weight: 100;
   }
 
+  textarea {
+    width: 100%;
+    height: 200px;
+  }
+
+  [contenteditable] {
+    padding: 0.5em;
+    border: 1px solid #eee;
+    border-radius: 4px;
+  }
+
   @media (min-width: 640px) {
     main {
       max-width: none;
@@ -143,6 +211,10 @@
   .container {
     width: 100%;
     height: 100%;
+  }
+
+  .done {
+    opacity: 0.4;
   }
 </style>
 
@@ -292,6 +364,101 @@
       {/if}
 
       <button disabled={!yes}> Subscribe </button>
+    </div>
+
+    <div id="groupedInputs">
+      <h2>Size</h2>
+
+      <label>
+        <input type="radio" bind:group={scoops} value={1} />
+        One scoop
+      </label>
+
+      <label>
+        <input type="radio" bind:group={scoops} value={2} />
+        Two scoops
+      </label>
+
+      <label>
+        <input type="radio" bind:group={scoops} value={3} />
+        Three scoops
+      </label>
+
+      <h2>Flavours</h2>
+
+      {#each menu as flavour}
+        <label>
+          <input type="checkbox" bind:group={flavours} value={flavour} />
+          {flavour}
+        </label>
+      {/each}
+
+      <select multiple bind:value={flavours}>
+        {#each menu as flavour}
+          <option value={flavour}>{flavour}</option>
+        {/each}
+      </select>
+
+      {#if flavours.length === 0}
+        <p>Please select at least one flavour</p>
+      {:else if flavours.length > scoops}
+        <p>Can't order more flavours than scoops!</p>
+      {:else}
+        <p>
+          You ordered
+          {scoops}
+          {scoops === 1 ? 'scoop' : 'scoops'}
+          of
+          {join(flavours)}
+        </p>
+      {/if}
+    </div>
+
+    <div id="textArea">
+      <textarea bind:value />
+      {@html marked(value)}
+    </div>
+
+    <div id="selectBindings">
+      <h2>Insecurity questions</h2>
+
+      <form on:submit|preventDefault={handleSubmit}>
+        <select bind:value={selected} on:blur={() => (answer = '')}>
+          {#each questions as question}
+            <option value={question}>{question.text}</option>
+          {/each}
+        </select>
+
+        <input bind:value={answer} />
+
+        <button disabled={!answer} type="submit"> Submit </button>
+      </form>
+
+      <p>selected question {selected ? selected.id : '[waiting...]'}</p>
+    </div>
+
+    <div id="contenteditableDivs">
+      <div contenteditable="true" bind:innerHTML={html} />
+      <pre>{html}</pre>
+    </div>
+
+    <div id="bindInEach">
+      <h1>Todos</h1>
+
+      <!-- Note that binding in this way mutates the data array. to avoid, we would use event handlers instead. -->
+      {#each todos as todo}
+        <div class:done={todo.done}>
+          <input type="checkbox" bind:checked={todo.done} />
+
+          <input placeholder="What needs to be done?" bind:value={todo.text} />
+        </div>
+      {/each}
+
+      <p>{remaining} remaining</p>
+
+      <button on:click={add}> Add new </button>
+
+      <button on:click={clear}> Clear completed </button>
     </div>
   </div>
 </main>
